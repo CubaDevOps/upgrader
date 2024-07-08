@@ -1,0 +1,30 @@
+<?xml version="1.0"?>
+<psalm
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        errorLevel="5"
+        xmlns="https://getpsalm.org/schema/config"
+        xsi:schemaLocation="https://getpsalm.org/schema/config vendor/vimeo/psalm/config.xsd"
+        findUnusedBaselineEntry="true"
+        findUnusedCode="true"
+        cacheDirectory="var/cache/psalm">
+    <projectFiles>
+        <directory name="src"/>
+        <directory name="tests"/>
+        <ignoreFiles>
+            <directory name="vendor"/>
+        </ignoreFiles>
+    </projectFiles>
+    <issueHandlers>
+        <UnusedClass>
+            <errorLevel type="suppress">
+                <directory name="tests"/> <!-- all UnusedClass issues in this directory are suppressed -->
+            </errorLevel>
+        </UnusedClass>
+        <PropertyNotSetInConstructor>
+            <errorLevel type="suppress">
+                <directory
+                        name="tests"/> <!-- all PropertyNotSetInConstructor issues in this directory are suppressed -->
+            </errorLevel>
+        </PropertyNotSetInConstructor>
+    </issueHandlers>
+</psalm>

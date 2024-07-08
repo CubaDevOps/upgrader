@@ -1,0 +1,107 @@
+name: Automatic Versioning and Release
+on:
+  push:
+    branches:
+      - main
+
+permissions:
+  contents: read
+
+jobs:
+  tests:
+    if: |
+      github.event_name == 'push' &&
+      !contains(github.event.head_commit.message, '[skip ci]')
+    name: Tests
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '7.4'
+
+      - name: Install dependencies
+        run: composer install --prefer-dist --no-progress
+
+      - name: Run tests
+        run: composer run-script test
+
+  # run this job only if the tests pass
+  release:
+    needs: tests
+    if: ${{ needs.tests.result == 'success' }}
+    name: Release
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write # to be able to create releases
+      issues: write # to be able to comment on released issues
+      pull-requests: write # to be able to comment on released pull requests
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+        with:
+          token: ${{ secrets.GIT_TOKEN }}
+          fetch-depth: 0
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '7.4'
+
+      - name: Install dependencies
+        run: composer install --prefer-dist --no-progress
+
+      - name: Format Code
+        run: composer run-script format
+
+      - name: Clean Dev Dependencies
+        run: |
+          rm -rf ./vendor ./tests ./phpunit.xml ./psalm.xml ./.github
+          composer install --no-dev
+
+      - name: Get the next version on dry-run    # or get the current version if it's nothing to release
+        id: version
+        uses: huggingface/semver-release-action@latest
+        with:
+          dryRun: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GIT_TOKEN }}
+
+      - name: Check if there is a new version to release
+        id: check_release
+        run: |
+          CURRENT_VERSION=$(jq -r '.version' composer.json)
+          NEXT_VERSION="${{ steps.version.outputs.version }}"
+          
+          if [ -z "$NEXT_VERSION" ]; then
+            echo "released=false" >> $GITHUB_OUTPUT
+          elif [ "$CURRENT_VERSION" == "$NEXT_VERSION" ]; then
+            echo "released=false" >> $GITHUB_OUTPUT
+          else
+            echo "released=true" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Update composer.json with next version
+        if: ${{ steps.check_release.outputs.released == 'true' }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GIT_TOKEN }}
+        run: |
+          NEXT_VERSION=${{ steps.version.outputs.version }}
+          jq --arg new_version "$NEXT_VERSION" '.version = $new_version' composer.json > composer.json.tmp && mv composer.json.tmp composer.json
+          git config --local user.email "github-actions[bot]@users.noreply.github.com"
+          git config --local user.name "GitHub Actions"
+          git add composer.json
+          git commit -m "chore: Bump version to $NEXT_VERSION [skip ci]"
+          git push https://${{ secrets.GIT_USER }}:${{ secrets.GIT_TOKEN }}@github.com/CubaDevOps/upgrader.git HEAD:main
+
+      - name: Release
+        if: ${{ steps.check_release.outputs.released == 'true' }}
+        id: semver
+        uses: huggingface/semver-release-action@latest
+        env:
+          GITHUB_TOKEN: ${{ secrets.GIT_TOKEN }}

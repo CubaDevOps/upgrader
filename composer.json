@@ -1,0 +1,61 @@
+{
+  "name": "cubadevops/upgrader",
+  "description": "PHP Project Upgrader",
+  "version": "1.0.0",
+  "license": "MIT",
+  "type": "package",
+  "minimum-stability": "dev",
+  "prefer-stable": true,
+  "keywords": [
+    "PHP",
+    "Upgrader",
+    "Composer",
+    "Updater",
+    "Auto Update"
+  ],
+  "authors": [
+    {
+      "name": "Carlos Batista",
+      "email": "info@carlosbatista.dev",
+      "homepage": "https://carlosbatista.dev",
+      "role": "Maintainer"
+    }
+  ],
+  "require": {
+    "php": ">=7.4",
+    "guzzlehttp/guzzle": "^7.7",
+    "ext-json": "*"
+  },
+  "require-dev": {
+    "roave/security-advisories": "dev-latest",
+    "phpunit/phpunit": "^9.6",
+    "vimeo/psalm": "^5.22.2",
+    "friendsofphp/php-cs-fixer": "^3.57"
+  },
+  "autoload": {
+    "psr-4": {
+      "CubaDevOps\\Upgrader\\": "src/"
+    }
+  },
+  "autoload-dev": {
+    "psr-4": {
+      "CubaDevOps\\Upgrader\\Test\\": "tests/"
+    }
+  },
+  "scripts": {
+    "test": "phpunit --configuration phpunit.xml",
+    "psalm": "psalm --show-info=true",
+    "fix-dry": "psalter --issues=all --dry-run",
+    "fix": "psalter --issues=all",
+    "format": "php-cs-fixer fix --rules=@PSR12,@Symfony,declare_strict_types --allow-risky=yes .",
+    "check": [
+      "@composer test",
+      "@composer psalm"
+    ]
+  },
+  "config": {
+    "sort-packages": true,
+    "preferred-install": "auto",
+    "optimize-autoloader": true
+  }
+}

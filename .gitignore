@@ -1,0 +1,10 @@
+.env
+vendor
+var
+xdebug
+*.cache
+*.log
+.idea
+.vscode
+*.lock
+.DS_Store
