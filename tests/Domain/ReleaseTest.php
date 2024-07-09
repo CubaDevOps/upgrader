@@ -1,9 +1,10 @@
 <?php
 
+declare(strict_types=1);
+
 namespace CubaDevOps\Upgrader\Test\Domain;
 
-use CubaDevOps\Upgrader\Domain\Release;
-use DateTimeImmutable;
+use CubaDevOps\Upgrader\Domain\ValueObjects\Release;
 use PHPUnit\Framework\TestCase;
 
 class ReleaseTest extends TestCase
@@ -13,7 +14,7 @@ class ReleaseTest extends TestCase
 
     public function testGetDate(): void
     {
-        $this->assertEquals(new DateTimeImmutable('2021-01-01'), $this->release->getDate());
+        $this->assertEquals(new \DateTimeImmutable('2021-01-01'), $this->release->getDate());
     }
 
     public function testGetNotes(): void
@@ -43,7 +44,7 @@ class ReleaseTest extends TestCase
         $this->expectExceptionMessage('Invalid URL');
         $this->release = new Release(
             'v1.0.0',
-            new DateTimeImmutable('2021-01-01'),
+            new \DateTimeImmutable('2021-01-01'),
             'Initial release',
             false,
             'invalid-url'
@@ -54,7 +55,7 @@ class ReleaseTest extends TestCase
     {
         $this->release = new Release(
             'v1.0.0',
-            new DateTimeImmutable('2021-01-01'),
+            new \DateTimeImmutable('2021-01-01'),
             'Initial release',
             false,
             self::ARTIFACT_URL

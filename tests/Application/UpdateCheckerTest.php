@@ -6,7 +6,7 @@ namespace CubaDevOps\Upgrader\Test\Application;
 
 use CubaDevOps\Upgrader\Application\UpdateChecker;
 use CubaDevOps\Upgrader\Domain\Exceptions\InvalidVersionException;
-use CubaDevOps\Upgrader\Domain\Release;
+use CubaDevOps\Upgrader\Domain\ValueObjects\Release;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 

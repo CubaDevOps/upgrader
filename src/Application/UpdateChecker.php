@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace CubaDevOps\Upgrader\Application;
 
 use CubaDevOps\Upgrader\Domain\Exceptions\InvalidVersionException;
-use CubaDevOps\Upgrader\Domain\Release;
+use CubaDevOps\Upgrader\Domain\ValueObjects\Release;
 use CubaDevOps\Upgrader\Domain\ValueObjects\Version;
 
 class UpdateChecker

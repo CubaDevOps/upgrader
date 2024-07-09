@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace CubaDevOps\Upgrader\Domain;
+namespace CubaDevOps\Upgrader\Domain\ValueObjects;
 
 use DateTimeImmutable;
 
