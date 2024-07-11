@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace CubaDevOps\Upgrader\Test\Domain;
+namespace CubaDevOps\Upgrader\Test\Domain\ValueObjects;
 
 use CubaDevOps\Upgrader\Domain\ValueObjects\Release;
 use PHPUnit\Framework\TestCase;
