@@ -57,6 +57,13 @@ class VersionTest extends TestCase
         ], Version::parse(self::SHORT_VERSION));
     }
 
+    public function testParseThrowAnExceptionOnInvalidVersionString(): void
+    {
+        $this->expectException(InvalidVersionException::class);
+        $this->expectExceptionMessage('Invalid semantic version string provided');
+        Version::parse('invalid.version');
+    }
+
     public function testGetMinor(): void
     {
         $this->assertEquals(0, $this->version->getMinor());
