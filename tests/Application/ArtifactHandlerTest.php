@@ -7,6 +7,7 @@ namespace CubaDevOps\Upgrader\Test\Application;
 use CubaDevOps\Upgrader\Application\ArtifactHandler;
 use CubaDevOps\Upgrader\Domain\Exceptions\ArtifactNotDownloadableException;
 use CubaDevOps\Upgrader\Domain\Exceptions\ArtifactNotInstallableException;
+use CubaDevOps\Upgrader\Domain\Exceptions\DirectoryNotExistsException;
 use CubaDevOps\Upgrader\Domain\ValueObjects\Release;
 use CubaDevOps\Upgrader\Test\TestDoubles\Application\ArtifactHandlerDouble;
 use PHPUnit\Framework\TestCase;
@@ -25,7 +26,6 @@ class ArtifactHandlerTest extends TestCase
     public function testArtifactWasDownloaded(): void
     {
         $this->release->method('getArtifactUrl')->willReturn(self::ARTIFACT_URL);
-        @unlink(self::DOWNLOAD_PATH); // Ensure the file does not exist
         static::assertTrue($this->artifact_handler->download(self::DOWNLOAD_PATH));
         static::assertFileExists(self::DOWNLOAD_PATH);
     }
@@ -57,27 +57,29 @@ class ArtifactHandlerTest extends TestCase
      *
      * @throws ArtifactNotInstallableException
      * @throws ArtifactNotDownloadableException
+     * @throws DirectoryNotExistsException
      */
     public function testArtifactWasInstalled(): void
     {
         $this->release->method('getArtifactUrl')->willReturn(self::ARTIFACT_URL);
         $this->artifact_handler->download(self::DOWNLOAD_PATH);
-        @unlink(self::INSTALLATION_PATH); // Ensure the dir does not exist
         $installed = $this->artifact_handler->install(self::DOWNLOAD_PATH, self::INSTALLATION_PATH);
         static::assertTrue($installed);
         static::assertDirectoryExists(self::INSTALLATION_PATH);
     }
 
+    /**
+     * @throws DirectoryNotExistsException
+     */
     public function testForbiddenInstallBeforeDownload(): void
     {
         $this->expectException(ArtifactNotInstallableException::class);
         $this->expectExceptionMessage('The artifact must be downloaded before installing');
-        @unlink(self::DOWNLOAD_PATH); // Ensure the file does not exist
         $this->artifact_handler->install(self::DOWNLOAD_PATH, self::INSTALLATION_PATH);
     }
 
     /**
-     * @throws ArtifactNotDownloadableException
+     * @throws ArtifactNotDownloadableException|DirectoryNotExistsException
      */
     public function testArtifactCouldNotBeOpenToInstall(): void
     {
@@ -92,6 +94,7 @@ class ArtifactHandlerTest extends TestCase
     /**
      * @throws ArtifactNotDownloadableException
      * @throws ArtifactNotInstallableException
+     * @throws DirectoryNotExistsException
      */
     public function testFilesWasExcludedFromUpdate(): void
     {
@@ -108,5 +111,7 @@ class ArtifactHandlerTest extends TestCase
     {
         $this->release = $this->createMock(Release::class);
         $this->artifact_handler = new ArtifactHandler($this->release);
+        @unlink(self::DOWNLOAD_PATH); // Ensure the file does not exist
+        @unlink(self::INSTALLATION_PATH); // Ensure the dir does not exist
     }
 }
