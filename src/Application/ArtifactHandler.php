@@ -65,10 +65,15 @@ class ArtifactHandler
     /**
      * @throws DirectoryNotExistsException
      */
-    private function assertDirectoryExists(string $to_directory): void
+    protected function assertDirectoryExists(string $to_directory): void
     {
-        if (!is_dir($to_directory) && !mkdir($to_directory) && !is_dir($to_directory)) {
-            throw new DirectoryNotExistsException(sprintf('Directory "%s" was not created', $to_directory));
+        $message = sprintf('Directory "%s" was not created', $to_directory);
+        try {
+            if (!is_dir($to_directory) && !mkdir($to_directory) && !is_dir($to_directory)) {
+                throw new DirectoryNotExistsException($message);
+            }
+        } catch (\Exception $e) {
+            throw new DirectoryNotExistsException($message, $e->getCode(), $e);
         }
     }
 
