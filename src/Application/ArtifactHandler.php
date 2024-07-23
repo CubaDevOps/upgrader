@@ -7,16 +7,13 @@ namespace CubaDevOps\Upgrader\Application;
 use CubaDevOps\Upgrader\Domain\Exceptions\ArtifactNotDownloadableException;
 use CubaDevOps\Upgrader\Domain\Exceptions\ArtifactNotInstallableException;
 use CubaDevOps\Upgrader\Domain\Exceptions\DirectoryNotExistsException;
-use CubaDevOps\Upgrader\Domain\ValueObjects\Release;
 
 class ArtifactHandler
 {
-    protected Release $release;
     protected \ZipArchive $zip_handler;
 
-    public function __construct(Release $release)
+    public function __construct()
     {
-        $this->release = $release;
         $this->zip_handler = new \ZipArchive();
     }
 
@@ -25,9 +22,9 @@ class ArtifactHandler
      *
      * @throws ArtifactNotDownloadableException
      */
-    public function download(string $dest_path): bool
+    public function download(string $artifact_url, string $dest_path): bool
     {
-        $artifact_resource = $this->getArtifactResource($this->release->getArtifactUrl());
+        $artifact_resource = $this->getArtifactResource($artifact_url);
 
         try {
             $this->assertDirectoryExists(dirname($dest_path));
