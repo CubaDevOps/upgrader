@@ -12,9 +12,9 @@ class ArtifactHandler
 {
     protected \ZipArchive $zip_handler;
 
-    public function __construct()
+    public function __construct(\ZipArchive $zip_handler)
     {
-        $this->zip_handler = new \ZipArchive();
+        $this->zip_handler = $zip_handler;
     }
 
     /**

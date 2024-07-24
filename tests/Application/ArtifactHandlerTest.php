@@ -101,7 +101,7 @@ class ArtifactHandlerTest extends TestCase
     {
         $excluded_resources = [self::EXCLUDED_DIR, self::EXCLUDED_FILE];
         $this->release->method('getArtifactUrl')->willReturn(self::ARTIFACT_URL);
-        $this->artifact_handler = new ArtifactHandlerDouble();
+        $this->artifact_handler = new ArtifactHandlerDouble(new \ZipArchive());
         $this->artifact_handler->download($this->release->getArtifactUrl(), self::DOWNLOAD_PATH);
         $installed = $this->artifact_handler->install(self::DOWNLOAD_PATH, self::INSTALLATION_PATH, $excluded_resources);
         static::assertTrue($installed);
@@ -138,7 +138,7 @@ class ArtifactHandlerTest extends TestCase
     protected function setUp(): void
     {
         $this->release = $this->createMock(Release::class);
-        $this->artifact_handler = new ArtifactHandler();
+        $this->artifact_handler = new ArtifactHandler(new \ZipArchive());
         @unlink(self::DOWNLOAD_PATH); // Ensure the file does not exist
         @unlink(self::INSTALLATION_PATH); // Ensure the dir does not exist
     }
