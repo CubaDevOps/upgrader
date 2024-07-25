@@ -1,0 +1,10 @@
+{
+  "repository_provider": "github",
+  "repository_identifier": "cubadevops/upgrader",
+  "project_dir": "/var/www/html/var/upgrader",
+  "has_root_directory": true,
+  "excluded_resources": [
+    "tests",
+    ".github"
+  ]
+}
