@@ -53,7 +53,7 @@ class Upgrader
         }
 
         if (!$force && !$this->checker->isSecureToUpgrade($release)) {
-            return false;
+            throw new \RuntimeException('It is not secure to upgrade to this version (use --force to bypass this check)');
         }
 
         return $this->upgrade($release);
@@ -76,7 +76,7 @@ class Upgrader
     }
 
     /**
-     * @return array<string>
+     * @return array<array{'version','is_secure'}>
      *
      * @throws InvalidVersionException
      */

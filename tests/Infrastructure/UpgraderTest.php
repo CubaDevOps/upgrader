@@ -96,9 +96,16 @@ class UpgraderTest extends TestCase
      * @throws ArtifactNotDownloadableException
      * @throws DirectoryNotExistsException
      */
-    public function testNotUpgradeToInsecure(): void
+    public function testUpgradeToInsecureThrowsAnException(): void
     {
-        self::assertFalse($this->upgrader->upgradeTo('2.0.0'));
+        $release_mock = $this->createMock(Release::class);
+        $release_mock->method('getVersion')->willReturn('v2.0.0');
+        $this->repository->method('getRelease')->willReturn($release_mock);
+        $this->update_checker->method('isUpdateNeeded')->willReturn(true);
+        $this->update_checker->method('isSecureToUpgrade')->willReturn(false);
+        $this->expectException(\RuntimeException::class);
+        $this->expectExceptionMessage('It is not secure to upgrade to this version (use --force to bypass this check)');
+        $this->upgrader->upgradeTo('2.0.0');
     }
 
     /**

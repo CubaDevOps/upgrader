@@ -123,6 +123,20 @@ class GitHubRepositoryTest extends TestCase
         $this->assertSame('v1.1.0', $release->getVersion());
     }
 
+    /**
+     * @throws InvalidVersionException
+     * @throws GuzzleException
+     * @throws \JsonException
+     */
+    public function testGetReleaseByMajorThrowsAnExceptionOnNonExistentMajor(): void
+    {
+        $this->setupAllReleasesRequestClient();
+
+        $this->expectException(\RuntimeException::class);
+        $this->expectExceptionMessage('No release found for the given major version');
+        $this->githubRepository->getReleaseByMajor(0);
+    }
+
     protected function setUp(): void
     {
         $this->client = $this->createMock(Client::class);

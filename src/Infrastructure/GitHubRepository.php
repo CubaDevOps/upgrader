@@ -94,6 +94,7 @@ class GitHubRepository implements RepositoryInterface
      * @throws InvalidVersionException
      * @throws GuzzleException
      * @throws \JsonException
+     * @throws \Exception
      */
     public function getReleaseByMajor(int $major): Release
     {
@@ -104,6 +105,11 @@ class GitHubRepository implements RepositoryInterface
                 $candidates[] = $release;
             }
         }
+
+        if (empty($candidates)) {
+            throw new \RuntimeException('No release found for the given major version');
+        }
+
         // return the latest release candidate
         usort($candidates, static fn (Release $a, Release $b) => $a->getDate() <=> $b->getDate());
 
