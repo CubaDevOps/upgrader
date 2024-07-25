@@ -91,7 +91,7 @@ class ArtifactHandler
         $this->openZipFile($artifact_path); // Reopen the zip file to extract it
 
         try {
-            return $this->extractTo($to_directory, $has_root_directory);
+            return $this->extractTo($to_directory, $has_root_directory) && @unlink($artifact_path);
         } catch (\Exception $e) {
             throw new ArtifactNotInstallableException('The artifact could not be installed', $e->getCode(), $e);
         }
@@ -164,7 +164,7 @@ class ArtifactHandler
         }
         $this->moveExtractedFiles($temp_directory.DIRECTORY_SEPARATOR.$root_directory_name, $to_directory);
 
-        return $this->zip_handler->close();
+        return $this->zip_handler->close() && $this->cleanTempDirectory($temp_directory);
     }
 
     /**
@@ -187,5 +187,19 @@ class ArtifactHandler
                 throw new ArtifactNotInstallableException(sprintf('Could not copy file "%s" to "%s"', $file, $target));
             }
         }
+    }
+
+    private function cleanTempDirectory(string $temp_directory): bool
+    {
+        $files = new \FilesystemIterator($temp_directory, \FilesystemIterator::SKIP_DOTS | \FilesystemIterator::KEY_AS_PATHNAME);
+        foreach ($files as $path => $file) {
+            if ($file->isDir()) {
+                $this->cleanTempDirectory($path);
+                continue;
+            }
+            @unlink($path);
+        }
+
+        return @rmdir($temp_directory);
     }
 }
