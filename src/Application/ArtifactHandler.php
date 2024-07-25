@@ -179,6 +179,7 @@ class ArtifactHandler
             $target = $to_directory.DIRECTORY_SEPARATOR.$file->getFilename();
             if ($file->isDir()) {
                 $this->assertDirectoryExists($target);
+                $this->moveExtractedFiles($path, $target);
                 continue;
             }
 
