@@ -1,0 +1,112 @@
+#!/usr/bin/env php
+<?php
+
+declare(strict_types=1);
+
+require __DIR__.'/../vendor/autoload.php';
+
+use CubaDevOps\Upgrader\Application\ArtifactHandler;
+use CubaDevOps\Upgrader\Application\UpdateChecker;
+use CubaDevOps\Upgrader\Domain\DTO\Configuration;
+use CubaDevOps\Upgrader\Infrastructure\GitHubRepository;
+use CubaDevOps\Upgrader\Infrastructure\OutputFormatter;
+use CubaDevOps\Upgrader\Infrastructure\Upgrader;
+use GuzzleHttp\Client;
+
+if (PHP_SAPI !== 'cli') {
+    echo OutputFormatter::format('This script must be run only from the command line.', 'error');
+    exit(1);
+}
+
+$debug = in_array('--debug', $argv);
+
+try {
+    $configuration = Configuration::buildFromConfigFile();
+    $current_version = json_decode(file_get_contents(COMPOSER_FILE), true, 512, JSON_THROW_ON_ERROR)['version'] ?? null;
+    if (empty($current_version)) {
+        throw new RuntimeException('Could not determine the current version, please set it in the composer.json file.');
+    }
+    $repository = null;
+
+    // Todo: Implement a factory to create the repository based on the provider
+    switch ($configuration->getRepositoryProvider()) {
+        case 'github':
+            $client = new Client(['base_uri' => 'https://api.github.com']);
+            $repository = new GitHubRepository($configuration->getProjectRepository(), $client);
+            break;
+        case 'gitlab':
+            throw new RuntimeException('GitLab provider not implemented yet');
+        case 'bitbucket':
+            throw new RuntimeException('Bitbucket provider not implemented yet');
+        default:
+            throw new RuntimeException('Unknown repository provider');
+    }
+
+    $upgrader = new Upgrader(
+        $current_version,
+        $configuration,
+        $repository,
+        new ArtifactHandler(new ZipArchive()),
+        new UpdateChecker($current_version)
+    );
+
+    $command = $argv[1] ?? '';
+
+    // Todo extract this to a command handler
+    switch ($command) {
+        case 'show-candidates':
+            $candidates = $upgrader->getUpgradeCandidates();
+            if (empty($candidates)) {
+                echo OutputFormatter::format('No versions available to upgrade');
+                exit(1);
+            }
+            echo OutputFormatter::format('Available versions:');
+            foreach ($candidates as $candidate) {
+                echo OutputFormatter::format(json_encode($candidate, JSON_THROW_ON_ERROR), 'green');
+            }
+            break;
+        case 'upgrade-to':
+            $version = $argv[2] ?? '';
+            $force = in_array('--force', $argv);
+            if (empty($version)) {
+                echo OutputFormatter::format('Please provide a version to upgrade to.', 'error');
+                exit(1);
+            }
+            if ($upgrader->upgradeTo($version, $force)) {
+                echo OutputFormatter::format('Upgrade successful', 'success');
+            } else {
+                echo OutputFormatter::format('You either have the latest version or the version you want to upgrade to is not available.');
+            }
+            break;
+        case 'upgrade-to-latest':
+            if ($upgrader->upgradeToLatest()) {
+                echo OutputFormatter::format('Upgrade successful', 'success');
+            } else {
+                echo OutputFormatter::format('You have the latest version');
+            }
+            break;
+        case 'upgrade-safely':
+            if ($upgrader->upgradeSafely()) {
+                echo OutputFormatter::format('Upgrade successful', 'success');
+            } else {
+                echo OutputFormatter::format('You have the latest minor version');
+            }
+            break;
+        case '--help':
+        case '-h':
+        default:
+            echo OutputFormatter::format('Usage: ', 'blue', false).OutputFormatter::format('upgrader [command] --debug(optional)', 'green');
+            echo OutputFormatter::format('Commands:', 'blue');
+            echo OutputFormatter::format('  show-candidates', 'green', false).OutputFormatter::format('    [Show available versions to upgrade]', 'yellow');
+            echo OutputFormatter::format('  upgrade-safely', 'green', false).OutputFormatter::format('    [Upgrade safely to the highest minor version]', 'yellow');
+            echo OutputFormatter::format('  upgrade-to-latest', 'green', false).OutputFormatter::format('    [Upgrade to the latest version (--force is implicit)]', 'yellow');
+            echo OutputFormatter::format('  upgrade-to <version> --force(optional)', 'green', false).OutputFormatter::format('    [Upgrade to a specific version]', 'yellow');
+            break;
+    }
+} catch (Exception $e) {
+    echo OutputFormatter::format('Error: '.$e->getMessage(), 'error');
+    if ($debug) {
+        echo OutputFormatter::format('Details: '.$e->getTraceAsString(), 'error');
+    }
+    exit(1);
+}
