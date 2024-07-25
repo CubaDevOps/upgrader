@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace CubaDevOps\Upgrader\Domain\DTO;
 
+use CubaDevOps\Upgrader\Domain\Exceptions\ConfigNotFoundException;
+
 class Configuration
 {
     private bool $has_root_directory;
@@ -31,6 +33,41 @@ class Configuration
         $this->has_root_directory = $has_root_directory;
         $this->excluded_resources = $excluded_resources;
         $this->repository_provider = $repository_provider;
+    }
+
+    /**
+     * @throws \JsonException
+     */
+    protected static function fromJson(string $json_file): self
+    {
+        $json = file_get_contents($json_file);
+        $data = json_decode($json, true, 512, JSON_THROW_ON_ERROR);
+        if (!isset($data['repository_provider'], $data['repository_identifier'], $data['project_dir'], $data['has_root_directory'])) {
+            throw new \InvalidArgumentException('Invalid configuration file');
+        }
+
+        return new self(
+            $data['repository_provider'],
+            $data['repository_identifier'],
+            $data['project_dir'],
+            $data['has_root_directory'],
+            $data['excluded_resources'] ?? []
+        );
+    }
+
+    /**
+     * @throws ConfigNotFoundException
+     * @throws \JsonException
+     */
+    public static function buildFromConfigFile(): self
+    {
+        $config_file = COMPOSER_BASE_DIR.DIRECTORY_SEPARATOR.'upgrader.json';
+
+        if (!file_exists($config_file) && !file_exists($config_file .= '.dist')) {
+            throw new ConfigNotFoundException('Config file not found and it is required to run the upgrader.');
+        }
+
+        return self::fromJson($config_file);
     }
 
     public function hasRootDirectory(): bool
