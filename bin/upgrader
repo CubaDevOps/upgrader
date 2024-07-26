@@ -3,7 +3,24 @@
 
 declare(strict_types=1);
 
-require __DIR__.'/../vendor/autoload.php';
+$autoload_files = [
+    __DIR__.'/../vendor/autoload.php', // for direct usage in development
+    __DIR__.'/../../../autoload.php',  // for usage as a dependency in another project
+];
+
+$autoload_found = false;
+foreach ($autoload_files as $autoload_file) {
+    if (file_exists($autoload_file)) {
+        require $autoload_file;
+        $autoload_found = true;
+        break;
+    }
+}
+
+if (!$autoload_found) {
+    fwrite(STDERR, "Error: Autoload file not found. Please run 'composer install'.\n");
+    exit(1);
+}
 
 use CubaDevOps\Upgrader\Application\ArtifactHandler;
 use CubaDevOps\Upgrader\Application\UpdateChecker;
