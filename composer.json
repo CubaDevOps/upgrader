@@ -1,7 +1,7 @@
 {
   "name": "cubadevops/upgrader",
   "description": "PHP Project Upgrader",
-  "version": "1.6.1",
+  "version": "1.6.2",
   "license": "MIT",
   "type": "package",
   "minimum-stability": "stable",
