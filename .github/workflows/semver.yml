@@ -1,4 +1,4 @@
-name: Automatic Versioning and Release
+name: Testing and Release
 on:
   push:
     branches:
