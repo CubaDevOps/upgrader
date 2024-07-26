@@ -64,5 +64,8 @@
     "allow-plugins": {
       "bangpound/composer-constants": true
     }
-  }
+  },
+  "bin": [
+    "bin/upgrader"
+  ]
 }
