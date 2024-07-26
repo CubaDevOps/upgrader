@@ -4,7 +4,7 @@
   "version": "1.6.1",
   "license": "MIT",
   "type": "package",
-  "minimum-stability": "dev",
+  "minimum-stability": "stable",
   "prefer-stable": true,
   "keywords": [
     "PHP",
